@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceFlow Dashboard</title>
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Lucide Icons (CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2EC4B6', // Light Sea Green (Brand/Income)
+                        secondary: '#FF9F1C', // Amber Glow (Expense/Action)
+                        accent: '#FFBF69', // Honey Bronze
+                        soft: '#CBF3F0', // Frozen Water
+                        navy: '#0f172a', // Dark Navy (Sidebar)
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    fontSize: {
+                        'xxs': '0.65rem',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Hide scrollbar for cleaner UI */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none;  scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased text-sm">
+    
+    <div class="flex min-h-screen relative">
+        
+        <!-- 1. Sidebar (Desktop Fixed / Mobile Hidden) -->
+        <aside class="hidden md:flex flex-col w-60 bg-navy text-slate-400 fixed h-full z-20 border-r border-slate-800 transition-all duration-300">
+            <!-- Logo -->
+            <div class="h-16 flex items-center px-6 border-b border-slate-800/50">
+                <div class="flex items-center gap-2 text-white">
+                    <div class="bg-primary rounded p-1">
+                        <i data-lucide="infinity" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="text-lg font-semibold tracking-tight">FinanceFlow</span>
+                </div>
+            </div>
+
+            <!-- Menu -->
+            <nav class="flex-1 px-3 py-6 space-y-1">
+                <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary text-white shadow-sm transition-all group">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="stats.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/50 hover:text-white transition-all group">
+                    <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                    <span class="font-medium">Statistics</span>
+                </a>
+                <a href="profile.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/50 hover:text-white transition-all group">
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                    <span class="font-medium">Profile</span>
+                </a>
+            </nav>
+
+            <!-- Bottom Actions -->
+            <div class="p-4 border-t border-slate-800">
+                <button onclick="openTransactionModal()" class="w-full bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/5">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span class="font-medium">Add New</span>
+                </button>
+                
+                <div class="mt-4 flex items-center gap-3 px-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-400 to-primary flex items-center justify-center text-xs font-bold text-white shadow-md">
+                        M
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-semibold text-white truncate">Martin</p>
+                        <p class="text-[10px] text-slate-500 truncate">Free Plan</p>
+                    </div>
+                    <button class="ml-auto text-slate-500 hover:text-white" onclick="logout()">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobile Header -->
+        <div class="md:hidden fixed w-full bg-navy z-30 h-16 px-4 flex justify-between items-center shadow-md">
+             <div class="flex items-center gap-2">
+                <div class="bg-primary rounded p-1">
+                    <i data-lucide="infinity" class="w-5 h-5 text-white"></i>
+                </div>
+                <span class="font-bold text-white tracking-wide">FinanceFlow</span>
+            </div>
+            <button class="text-slate-300 p-1">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- 2. Main Content Area -->
+        <main class="flex-1 md:ml-60 p-4 md:p-8 pt-20 md:pt-8 w-full max-w-7xl mx-auto">
+            
+            <!-- Header Section -->
+            <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-900">Dashboard</h1>
+                    <p class="text-slate-500 text-xs mt-1">Overview of your financial activity.</p>
+                </div>
+                
+                <!-- Month Filter -->
+                <div class="relative">
+                    <i data-lucide="calendar" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                    <input type="month" id="monthFilter" 
+                        class="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer shadow-sm">
+                </div>
+            </header>
+
+            <!-- 3. Top Stats Grid (Compact) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                
+                <!-- Card 1: Balance -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="p-2 bg-soft rounded-lg text-primary">
+                            <i data-lucide="wallet" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500">Total Balance</p>
+                        <h2 class="text-2xl font-bold text-slate-900 mt-1" id="stat-balance">Rp 0</h2>
+                    </div>
+                </div>
+
+                <!-- Card 2: Income -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="p-2 bg-soft rounded-lg text-primary">
+                            <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500">Total Income</p>
+                        <h2 class="text-xl font-bold text-slate-900 mt-1" id="stat-income">Rp 0</h2>
+                    </div>
+                </div>
+
+                <!-- Card 3: Expense -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="p-2 bg-orange-50 rounded-lg text-secondary">
+                            <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500">Total Expense</p>
+                        <h2 class="text-xl font-bold text-slate-900 mt-1" id="stat-expense">Rp 0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 4. Charts Section -->
+                <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-base text-slate-800">Financial Analysis</h3>
+                        <button class="text-slate-400 hover:text-primary">
+                            <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="relative h-60 w-full">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 5. Recent Transactions (Compact List) -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-base text-slate-800">Recent Transactions</h3>
+                        <!-- UPDATED LINK TO STATS -->
+                        <a href="stats.html" class="text-primary text-xs font-medium hover:underline">See All</a>
+                    </div>
+                    
+                    <div class="overflow-y-auto custom-scrollbar flex-1 pr-1" style="max-height: 240px;">
+                        <table class="w-full text-left border-collapse">
+                            <tbody class="text-sm" id="transaction-list-body">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- Add Transaction Modal -->
+    <div id="transactionModal" class="fixed inset-0 z-50 hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeTransactionModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transition-all scale-100">
+            <!-- Header -->
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800">Add New Transaction</h3>
+                <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <form id="addTransactionForm" class="p-6 space-y-4">
+                
+                <!-- Type Toggle -->
+                <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-lg">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="income" class="peer sr-only">
+                        <div class="flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium text-slate-500 peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all">
+                            <i data-lucide="arrow-down-left" class="w-4 h-4"></i> Income
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="expense" class="peer sr-only" checked>
+                        <div class="flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium text-slate-500 peer-checked:bg-white peer-checked:text-secondary peer-checked:shadow-sm transition-all">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Expense
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Amount -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Amount</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-slate-400 font-bold">Rp</span>
+                        </div>
+                        <input type="number" name="amount" required step="1" placeholder="0" 
+                            class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-lg font-bold text-slate-800 placeholder-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                    </div>
+                </div>
+
+                <!-- Category & Date Row -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Category</label>
+                        <div class="relative">
+                            <select name="category" required class="block w-full pl-3 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                                <option value="" disabled selected>Select...</option>
+                                <option value="Food">Food</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Date</label>
+                        <input type="date" name="date" required 
+                            class="block w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                    </div>
+                </div>
+
+                <!-- Note -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Note</label>
+                    <textarea name="note" rows="2" placeholder="What is this for?" 
+                        class="block w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 placeholder-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeTransactionModal()" class="flex-1 py-2.5 rounded-lg border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors">Cancel</button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- App Logic -->
+    <script type="module" src="assets/js/app.js"></script>
+    
+    <!-- Initialize Icons -->
+    <script>
+        // Simple Modal Logic
+        function openTransactionModal() {
+            document.getElementById('transactionModal').classList.remove('hidden');
+        }
+        function closeTransactionModal() {
+            document.getElementById('transactionModal').classList.add('hidden');
+        }
+
+        // Set Default Date to Today (Local Time)
+        const dateInput = document.querySelector('input[name="date"]');
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(now - offset)).toISOString().slice(0, 10);
+        dateInput.value = localISOTime;
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
