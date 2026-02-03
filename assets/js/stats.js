@@ -308,6 +308,69 @@ document.getElementById('expenseSearch').addEventListener('input', (e) => {
     currentPage = 1; renderExpenseTable();
 });
 
+// --- Export PDF Logic ---
+window.exportToPDF = function() {
+    if (filteredExpenses.length === 0) {
+        showToast('No data to export', 'error');
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // 1. Setup Fonts & Colors
+    const primaryColor = [46, 196, 182]; // Teal from our theme
+    
+    // 2. Title Section
+    const filterInput = document.getElementById('monthFilter');
+    const periodText = filterInput ? filterInput.value : 'Monthly Report';
+    
+    doc.setFontSize(18);
+    doc.setTextColor(40);
+    doc.text('Expense Report', 14, 22);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Period: ${periodText}`, 14, 30);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 36);
+
+    // 3. Prepare Data for Table
+    const tableRows = filteredExpenses.map((txn, index) => {
+        const amount = Math.abs(parseFloat(txn.amount));
+        const categoryName = txn.category || txn.category_name || 'Uncategorized';
+        const note = txn.note || categoryName;
+        
+        return [
+            index + 1,
+            formatDate(txn.date),
+            note,
+            categoryName,
+            formatCurrency(amount)
+        ];
+    });
+
+    const totalAmount = filteredExpenses.reduce((sum, t) => sum + Math.abs(parseFloat(t.amount)), 0);
+
+    // 4. Generate Table
+    doc.autoTable({
+        startY: 45,
+        head: [['No', 'Date', 'Description', 'Category', 'Amount']],
+        body: tableRows,
+        foot: [['', '', '', 'TOTAL', formatCurrency(totalAmount)]],
+        headStyles: { fillColor: primaryColor, halign: 'left' },
+        footStyles: { fillColor: [248, 250, 252], textColor: [30, 41, 59], fontStyle: 'bold', halign: 'right' },
+        columnStyles: {
+            4: { halign: 'right' } // Amount column right aligned
+        },
+        theme: 'striped',
+        margin: { top: 45 }
+    });
+
+    // 5. Save PDF
+    doc.save(`FinanceFlow_Report_${periodText}.pdf`);
+    showToast('PDF downloaded successfully!', 'success');
+};
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Setup Date Filter
