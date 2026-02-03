@@ -4,7 +4,7 @@ const API_URL = isLocal ? 'http://localhost:3000/api' : '/api';
 
 // Auth Variables
 let isRedirectingToLogin = false;
-let sb = null; // Supabase client instance
+let sb = null; 
 
 // Check Auth
 const token = localStorage.getItem('sb_token');
@@ -34,13 +34,6 @@ async function authFetch(url, options = {}) {
     } catch (error) { throw error; }
 }
 
-// Helper: Format Currency
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-    }).format(amount);
-};
-
 // --- Fetch Stats ---
 async function fetchProfileStats() {
     try {
@@ -50,6 +43,9 @@ async function fetchProfileStats() {
         const data = await res.json();
         const stats = data.data || data;
         
+        // Helper
+        const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+
         if (document.getElementById('total-txns')) {
             document.getElementById('total-txns').textContent = stats.transaction_count ?? 0;
             document.getElementById('total-income').textContent = formatCurrency(stats.income || 0);
@@ -59,58 +55,115 @@ async function fetchProfileStats() {
     } catch (e) { console.error('Stats error', e); }
 }
 
+// --- Telegram Logic ---
+
+window.generateTelegramOTP = async function() {
+    const btn = document.getElementById('btn-connect-tele');
+    const otpCode = document.getElementById('tele-otp-code');
+    
+    // UI Feedback
+    if (btn && !btn.classList.contains('hidden')) {
+        btn.innerText = 'Generating...';
+        btn.disabled = true;
+    } else {
+        // Regenerate mode
+        otpCode.textContent = '...';
+        otpCode.classList.add('animate-pulse');
+    }
+
+    try {
+        const res = await authFetch(`${API_URL}/telegram/otp`, { method: 'POST' });
+        if (!res || !res.ok) throw new Error('Failed to generate code');
+        
+        const data = await res.json();
+        const otp = data.otp;
+        const botUsername = data.botUsername || 'FinanceFlow_Bot'; 
+
+        // Show UI
+        document.getElementById('tele-otp-container').classList.remove('hidden');
+        otpCode.classList.remove('animate-pulse');
+        otpCode.textContent = otp;
+        
+        const link = document.getElementById('tele-link');
+        link.href = `https://t.me/${botUsername}?start=${otp}`;
+        link.textContent = `Open @${botUsername}`; 
+        
+        if (btn) btn.classList.add('hidden'); 
+
+    } catch (e) {
+        console.error(e);
+        alert('Error generating code.');
+        otpCode.textContent = 'Error';
+    } finally {
+        if (btn) {
+            btn.innerText = 'Connect Now';
+            btn.disabled = false;
+        }
+    }
+};
+
+window.copyOTP = function() {
+    const otp = document.getElementById('tele-otp-code').innerText;
+    // Format: "OTP: XXXXXX" for easier n8n parsing
+    const message = `OTP: ${otp}`;
+    navigator.clipboard.writeText(message).then(() => alert('Code copied to clipboard!'));
+};
+
+async function checkTelegramStatus() {
+    try {
+        const res = await authFetch(`${API_URL}/telegram/status`);
+        if (!res || !res.ok) return;
+        
+        const data = await res.json();
+        const statusEl = document.getElementById('tele-status');
+        const btn = document.getElementById('btn-connect-tele');
+        
+        if (data.connected) {
+            statusEl.textContent = 'Connected';
+            statusEl.className = 'text-xs bg-green-50 px-2 py-1 rounded border border-green-200 text-green-700';
+            btn.textContent = 'Re-Connect Device';
+        }
+    } catch (e) { console.warn('Tele Status Error', e); }
+}
+
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Profile JS Loaded');
 
-    // 1. Initialize Supabase (Safe Access)
     if (typeof window.supabase !== 'undefined' && window.APP_CONFIG) {
         sb = window.supabase.createClient(window.APP_CONFIG.supabaseUrl, window.APP_CONFIG.supabaseKey);
-    } else {
-        console.error('Supabase SDK or Config not loaded');
-    }
+    } 
 
-    // 2. Load User Info from LocalStorage
     const userStr = localStorage.getItem('sb_user');
     if (userStr) {
         try {
             const user = JSON.parse(userStr);
-            console.log('User Data:', user);
-
-            // Populate UI
-            const name = user.user_metadata?.full_name || 'User';
-            const email = user.email;
             
             const elName = document.getElementById('profile-name');
             const elEmail = document.getElementById('profile-email');
             const elAvatar = document.getElementById('profile-avatar');
             const elJoin = document.getElementById('join-date');
 
-            if (elName) elName.textContent = name;
-            if (elEmail) elEmail.textContent = email;
+            if (elName) elName.textContent = user.user_metadata?.full_name || 'User';
+            if (elEmail) elEmail.textContent = user.email;
             
             if (elAvatar) {
+                const name = user.user_metadata?.full_name || 'User';
                 const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
                 elAvatar.textContent = initials;
             }
 
             if (elJoin) {
-                // Detailed Date: '23 January 2026'
                 const joinDate = new Date(user.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
                 elJoin.textContent = `Member since ${joinDate}`;
             }
 
-        } catch (e) {
-            console.error('Error parsing user data', e);
-        }
-    } else {
-        console.warn('No user data in localStorage');
+        } catch (e) { console.error('Error parsing user data', e); }
     }
 
-    // 3. Fetch Live Stats
     fetchProfileStats();
+    checkTelegramStatus(); // Check connection
 
-    // 4. Setup Change Password Form
     const pwForm = document.getElementById('changePasswordForm');
     if (pwForm) {
         pwForm.addEventListener('submit', async (e) => {
@@ -122,27 +175,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = pwForm.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
 
-            if (newPassword !== confirmPassword) {
-                alert('Passwords do not match');
-                return;
-            }
+            if (newPassword !== confirmPassword) { alert('Passwords do not match'); return; }
 
             try {
                 btn.innerHTML = 'Updating...';
                 btn.disabled = true;
-
                 const { error } = await sb.auth.updateUser({ password: newPassword });
                 if (error) throw error;
-
                 alert('Password has been changed successfully.');
                 setTimeout(() => { if (window.closePasswordModal) window.closePasswordModal(); }, 1000);
-
-            } catch (error) {
-                alert(error.message);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+            } catch (error) { alert(error.message); } 
+            finally { btn.innerHTML = originalText; btn.disabled = false; }
         });
     }
 });

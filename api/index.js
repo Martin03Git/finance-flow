@@ -194,6 +194,28 @@ app.get('/api/stats/categories', authenticateUser, async (req, res) => {
     }, res);
 });
 
+// 6. Telegram: Generate OTP
+app.post('/api/telegram/otp', authenticateUser, async (req, res) => {
+    const userId = req.user.id;
+    const webhookUrl = process.env.N8N_WEBHOOK_TELEGRAM_OTP;
+
+    await forwardToN8N(webhookUrl, {
+        action: 'generate_otp',
+        userId: userId
+    }, res);
+});
+
+// 7. Telegram: Check Status
+app.get('/api/telegram/status', authenticateUser, async (req, res) => {
+    const userId = req.user.id;
+    const webhookUrl = process.env.N8N_WEBHOOK_TELEGRAM_STATUS;
+
+    await forwardToN8N(webhookUrl, {
+        action: 'check_status',
+        userId: userId
+    }, res);
+});
+
 // Start Server if running locally (Standalone)
 if (require.main === module) {
     const PORT = process.env.PORT || 3000;
