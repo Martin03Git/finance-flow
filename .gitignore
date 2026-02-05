@@ -1,10 +1,5 @@
 node_modules/
 .env
-.ai-discussion
-.gemini
-.project-rules
-.ui-design
-GEMINI.md
 .DS_Store
 .vercel
 /dist
