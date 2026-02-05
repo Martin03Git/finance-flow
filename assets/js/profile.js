@@ -55,76 +55,7 @@ async function fetchProfileStats() {
     } catch (e) { console.error('Stats error', e); }
 }
 
-// --- Telegram Logic ---
 
-window.generateTelegramOTP = async function() {
-    const btn = document.getElementById('btn-connect-tele');
-    const otpCode = document.getElementById('tele-otp-code');
-    
-    // UI Feedback
-    if (btn && !btn.classList.contains('hidden')) {
-        btn.innerText = 'Generating...';
-        btn.disabled = true;
-    } else {
-        // Regenerate mode
-        otpCode.textContent = '...';
-        otpCode.classList.add('animate-pulse');
-    }
-
-    try {
-        const res = await authFetch(`${API_URL}/telegram/otp`, { method: 'POST' });
-        if (!res || !res.ok) throw new Error('Failed to generate code');
-        
-        const data = await res.json();
-        const otp = data.otp;
-        const botUsername = data.botUsername || 'FinanceFlow_Bot'; 
-
-        // Show UI
-        document.getElementById('tele-otp-container').classList.remove('hidden');
-        otpCode.classList.remove('animate-pulse');
-        otpCode.textContent = otp;
-        
-        const link = document.getElementById('tele-link');
-        link.href = `https://t.me/${botUsername}?start=${otp}`;
-        link.textContent = `Open @${botUsername}`; 
-        
-        if (btn) btn.classList.add('hidden'); 
-
-    } catch (e) {
-        console.error(e);
-        alert('Error generating code.');
-        otpCode.textContent = 'Error';
-    } finally {
-        if (btn) {
-            btn.innerText = 'Connect Now';
-            btn.disabled = false;
-        }
-    }
-};
-
-window.copyOTP = function() {
-    const otp = document.getElementById('tele-otp-code').innerText;
-    // Format: "OTP: XXXXXX" for easier n8n parsing
-    const message = `OTP: ${otp}`;
-    navigator.clipboard.writeText(message).then(() => alert('Code copied to clipboard!'));
-};
-
-async function checkTelegramStatus() {
-    try {
-        const res = await authFetch(`${API_URL}/telegram/status`);
-        if (!res || !res.ok) return;
-        
-        const data = await res.json();
-        const statusEl = document.getElementById('tele-status');
-        const btn = document.getElementById('btn-connect-tele');
-        
-        if (data.connected) {
-            statusEl.textContent = 'Connected';
-            statusEl.className = 'text-xs bg-green-50 px-2 py-1 rounded border border-green-200 text-green-700';
-            btn.textContent = 'Re-Connect Device';
-        }
-    } catch (e) { console.warn('Tele Status Error', e); }
-}
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -162,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     fetchProfileStats();
-    checkTelegramStatus(); // Check connection
 
     const pwForm = document.getElementById('changePasswordForm');
     if (pwForm) {

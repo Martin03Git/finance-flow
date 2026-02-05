@@ -138,32 +138,7 @@
 
                     <!-- Actions -->
                     <div class="space-y-3">
-                        <!-- Telegram Connect -->
-                        <div class="p-4 rounded-xl border border-blue-100 bg-blue-50/50">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-2 text-blue-700 font-medium">
-                                    <i data-lucide="bot" class="w-5 h-5"></i>
-                                    <span>Telegram Bot</span>
-                                </div>
-                                <span class="text-xs bg-white px-2 py-1 rounded border border-blue-100 text-slate-500" id="tele-status">Not Connected</span>
-                            </div>
-                            <p class="text-xs text-slate-500 mb-3">Link your account to input transactions via chat.</p>
-                            
-                            <button id="btn-connect-tele" onclick="generateTelegramOTP()" class="w-full py-2 rounded-lg bg-white border border-blue-200 text-blue-600 text-xs font-bold hover:bg-blue-50 transition-colors">
-                                Connect Now
-                            </button>
-
-                            <!-- OTP Display (Hidden by default) -->
-                            <div id="tele-otp-container" class="hidden mt-3 text-center">
-                                <p class="text-xs text-slate-500 mb-1">Send this code to the bot:</p>
-                                <div class="flex items-center justify-center gap-2 mb-2">
-                                    <code class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-lg tracking-widest font-mono" id="tele-otp-code">---</code>
-                                    <button onclick="copyOTP()" class="text-slate-400 hover:text-slate-600" title="Copy"><i data-lucide="copy" class="w-4 h-4"></i></button>
-                                    <button onclick="generateTelegramOTP()" class="text-slate-400 hover:text-blue-500" title="Regenerate"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
-                                </div>
-                                <a href="https://t.me/YOUR_BOT_USERNAME?start=" target="_blank" id="tele-link" class="text-xs text-blue-600 hover:underline">Open Bot</a>
-                            </div>
-                        </div>
+                        
 
                         <button onclick="openPasswordModal()" class="w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 flex items-center justify-center gap-2 transition-colors">
                             <i data-lucide="key" class="w-4 h-4"></i>
