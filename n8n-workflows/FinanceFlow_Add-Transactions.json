@@ -1,0 +1,286 @@
+{
+  "name": "FinanceFlow - Add Transactions",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "add-transactions",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -560,
+        32
+      ],
+      "id": "745786f2-bcaf-4832-8559-78eeac8aed70",
+      "name": "Webhook",
+      "webhookId": "cabd5b35-9b57-49b0-a384-298c6fdf6b26"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "categories",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "keyValue": "={{ $json.body.payload.category_name }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        32
+      ],
+      "id": "82180b85-f99e-46b9-bc79-524219689ae7",
+      "name": "Get Transaction Category ID",
+      "retryOnFail": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "FmzwtUyKnwLDqzgE",
+          "name": "Supabase - Expense Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1a9a306-f33e-4de8-9c54-cc5747ec402c",
+              "name": "user_id",
+              "value": "={{ $json.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "901fa3c7-d19c-48e1-9c55-4ef813eb46b5",
+              "name": "amount",
+              "value": "={{ $('Webhook').item.json.body.payload.amount }}",
+              "type": "number"
+            },
+            {
+              "id": "6cc6df1a-0616-49c7-b2e8-cb512a0dd57d",
+              "name": "date",
+              "value": "={{ $('Webhook').item.json.body.payload.date }}",
+              "type": "string"
+            },
+            {
+              "id": "4b836b57-db2b-406e-9da4-5be28f13860c",
+              "name": "category_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "6127bf88-5a5c-425a-a44d-0236e19091dd",
+              "name": "category_name",
+              "value": "={{ $('Webhook').item.json.body.payload.category_name }}",
+              "type": "string"
+            },
+            {
+              "id": "d504895e-3070-4983-bede-99c7549cc2e3",
+              "name": "note",
+              "value": "={{ $('Webhook').item.json.body.payload.note }}",
+              "type": "string"
+            },
+            {
+              "id": "a95b7281-ca89-4def-81ff-9b24b3579866",
+              "name": "type",
+              "value": "={{ $('Webhook').item.json.body.payload.type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -144,
+        32
+      ],
+      "id": "2775885e-444f-44af-bad4-2f7458ec1911",
+      "name": "Prepare Data"
+    },
+    {
+      "parameters": {
+        "tableId": "transactions",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $json.user_id }}"
+            },
+            {
+              "fieldId": "category_id",
+              "fieldValue": "={{ $json.category_id }}"
+            },
+            {
+              "fieldId": "amount",
+              "fieldValue": "={{ $json.amount }}"
+            },
+            {
+              "fieldId": "date",
+              "fieldValue": "={{ $json.date }}"
+            },
+            {
+              "fieldId": "note",
+              "fieldValue": "={{ $json.note }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        48,
+        32
+      ],
+      "id": "cc9338ff-26a5-4f7a-8dfe-4de8e71e78d5",
+      "name": "Create New Transaction",
+      "retryOnFail": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "FmzwtUyKnwLDqzgE",
+          "name": "Supabase - Expense Tracker"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"message\": \"Failed to save transaction\",\n  \"error\": \"Category not found or database error occurred\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        272,
+        128
+      ],
+      "id": "0a1f1f0a-4eb5-482f-b179-665a16b25536",
+      "name": "Failed Respond"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Transaction saved successfully\",\n  \"data\": {\n    \"id\": \"{{ $json.id }}\"\n  }\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        272,
+        -64
+      ],
+      "id": "1b3bc7ce-2adf-4e05-98e9-83cc08cd00f4",
+      "name": "Success Respond"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "concise-obliging-falcon.ngrok-free.app",
+            "user-agent": "axios/1.13.2",
+            "content-length": "182",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "2402:5680:8f28:dba8:363f:a4cc:4718:8545",
+            "x-forwarded-host": "concise-obliging-falcon.ngrok-free.app",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "add_transaction",
+            "userId": "8ba58bf0-537e-4c6d-983a-46286d2abc61",
+            "payload": {
+              "amount": -10000,
+              "date": "2026-01-28",
+              "category_name": "Food",
+              "note": "mie ayam",
+              "type": "expense"
+            }
+          },
+          "webhookUrl": "https://concise-obliging-falcon.ngrok-free.app/webhook/add-transactions",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Transaction Category ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Transaction Category ID": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data": {
+      "main": [
+        [
+          {
+            "node": "Create New Transaction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Transaction": {
+      "main": [
+        [
+          {
+            "node": "Success Respond",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Failed Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4b4a112a-15c8-499e-af06-7c9eb245d7dd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a770f2e2d9919137aad6ab341adf11b9a1c37f583b353d394ecf99ec6ca60248"
+  },
+  "id": "zQf6oQd7NP6JDajb",
+  "tags": []
+}

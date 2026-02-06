@@ -1,0 +1,130 @@
+{
+  "name": "FinanceFlow - Delete Transaction",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "delete-transaction",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -64,
+        192
+      ],
+      "id": "d6f70bd5-9dfa-4173-865c-d9d5b5f60be0",
+      "name": "Webhook",
+      "webhookId": "b28a61fc-5c2a-4c14-9f36-7ac20880363f"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "transactions",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.transactionId }}"
+            },
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.userId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        144,
+        192
+      ],
+      "id": "b07091eb-c9ee-45bb-9166-03f29f326a69",
+      "name": "Delete a row"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Transaction deleted\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        352,
+        192
+      ],
+      "id": "c237f95f-489b-4bd9-b389-43f8d0a8bb0d",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "concise-obliging-falcon.ngrok-free.app",
+            "user-agent": "axios/1.13.2",
+            "content-length": "134",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "2402:5680:9b29:404f:7003:e23a:7a80:bb5a",
+            "x-forwarded-host": "concise-obliging-falcon.ngrok-free.app",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "delete_transaction",
+            "userId": "8ba58bf0-537e-4c6d-983a-46286d2abc61",
+            "transactionId": "4e566352-9fa9-4415-8dbf-ff4175002854"
+          },
+          "webhookUrl": "https://concise-obliging-falcon.ngrok-free.app/webhook/delete-transaction",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Delete a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d0a9acf2-072e-4091-b3eb-f3516ffd6af7",
+  "meta": {
+    "instanceId": "a770f2e2d9919137aad6ab341adf11b9a1c37f583b353d394ecf99ec6ca60248"
+  },
+  "id": "leQJD4cZrc1W2fpV",
+  "tags": []
+}

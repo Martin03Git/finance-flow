@@ -38,7 +38,6 @@ if (loginForm) {
 
             if (error) throw error;
 
-            // Success
             localStorage.setItem('sb_token', data.session.access_token);
             localStorage.setItem('sb_user', JSON.stringify(data.user));
             
@@ -82,13 +81,10 @@ if (registerForm) {
             if (error) throw error;
 
             // 2. Handle Profile Creation
-            // Ideally, a Database Trigger handles this. 
-            // Or we check if user is automatically logged in.
-            
             showAlert('Registration successful! Please check your email to verify (if enabled) or sign in.', 'success');
             setTimeout(() => {
                 window.location.href = 'login.html';
-            }, 2000);
+            }, 5000);
 
         } catch (error) {
             showAlert(error.message, 'error');

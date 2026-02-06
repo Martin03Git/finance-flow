@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
-const supabase = require('./utils/supabase'); // Enable Supabase Client
+
+// Enable Supabase Client
+const supabase = require('./utils/supabase'); 
 
 const app = express();
 
@@ -30,7 +32,7 @@ async function authenticateUser(req, res, next) {
             if (error.status === 401 || error.status === 403 || error.message.includes('Invalid') || error.message.includes('expired')) {
                 return res.status(401).json({ error: 'Invalid or Expired Token' });
             }
-            // For other errors (e.g. Supabase down), return 500 so frontend doesn't logout user
+            // For other errors (e.g. Supabase down), return 500
             return res.status(500).json({ error: 'Authentication Service Error' });
         }
 
@@ -88,7 +90,8 @@ app.get('/api/transactions', authenticateUser, async (req, res) => {
     const userId = req.user.id; 
     const webhookUrl = process.env.N8N_WEBHOOK_GET_TRANSACTIONS;
     
-    // Extract dates from Query Params (e.g. ?start=2023-10-01&end=2023-10-31)
+    // Extract dates from Query Params 
+    // (e.g. ?start=2023-10-01&end=2023-10-31)
     const { start, end } = req.query;
 
     await forwardToN8N(webhookUrl, { 
@@ -165,7 +168,7 @@ app.get('/api/stats', authenticateUser, async (req, res) => {
     await forwardToN8N(webhookUrl, { 
         action: action,
         userId: userId,
-        startDate: startDate // Used for dashboard, ignored by profile logic in n8n
+        startDate: startDate 
     }, res);
 });
 

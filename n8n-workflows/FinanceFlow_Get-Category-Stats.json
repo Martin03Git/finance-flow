@@ -1,0 +1,145 @@
+{
+  "name": "FinanceFlow - Get Category Stats",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "get-category-stats",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "45268382-7c85-4256-aeb7-a5f204543e58",
+      "name": "Webhook",
+      "webhookId": "2e156587-b821-4682-b8d6-5776a987c3d4"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        640,
+        -48
+      ],
+      "id": "47cda49b-98cc-4e05-863f-5c33cdf75c89",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  c.name as category,\n  c.color,\n  SUM(ABS(t.amount)) as amount\nFROM transactions t\nJOIN categories c ON t.category_id = c.id\nWHERE t.user_id = '{{ $json.body.userId }}'\nAND t.amount < 0 \nAND t.date >= '{{ $json.body.startDate }}'\nAND t.date <= '{{ $json.body.endDate }}'\nGROUP BY c.name, c.color\nORDER BY amount DESC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        -48
+      ],
+      "id": "26a050be-8e64-42ea-981a-5a116e294743",
+      "name": "Get Expense Amount of Category",
+      "credentials": {
+        "postgres": {
+          "id": "6ir1djsGj4YppZna",
+          "name": "Postgres - Expense Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -48
+      ],
+      "id": "86320842-7d90-4493-9435-9d41c3971aa2",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "concise-obliging-falcon.ngrok-free.app",
+            "user-agent": "axios/1.13.2",
+            "content-length": "127",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "2402:5680:9b3f:33b0:1299:9b11:2c37:fe40",
+            "x-forwarded-host": "concise-obliging-falcon.ngrok-free.app",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "get_category_stats",
+            "userId": "8ba58bf0-537e-4c6d-983a-46286d2abc61",
+            "startDate": "2026-02-01",
+            "endDate": "2026-02-28"
+          },
+          "webhookUrl": "https://concise-obliging-falcon.ngrok-free.app/webhook/get-category-stats",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Expense Amount of Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Expense Amount of Category": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ecb6d62d-24e2-488d-9a3c-124943d52904",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a770f2e2d9919137aad6ab341adf11b9a1c37f583b353d394ecf99ec6ca60248"
+  },
+  "id": "3Hh08zuGC8zTaxFc",
+  "tags": []
+}

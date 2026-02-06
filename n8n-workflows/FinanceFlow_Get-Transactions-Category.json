@@ -1,0 +1,201 @@
+{
+  "name": "FinanceFlow - Get Transactions Category",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "get-categories",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -160,
+        -32
+      ],
+      "id": "20133391-aa98-49aa-96c5-6e68b895c847",
+      "name": "Webhook",
+      "webhookId": "687847ed-4440-49d0-b899-d4bd755d0d5e"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        688,
+        -32
+      ],
+      "id": "ba971b3e-23bb-4869-86c8-a075e28cec30",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "categories",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.userId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -32
+      ],
+      "id": "ba70e681-89bd-4611-9556-09f22dc623b4",
+      "name": "Get Transactions Categories",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "FmzwtUyKnwLDqzgE",
+          "name": "Supabase - Expense Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "07e2bf1e-0984-4741-bf5e-825f34e5172f",
+              "name": "id",
+              "value": "={{ $('Get Transactions Categories').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f84f20f7-c8c1-4326-9198-8727de4b73e8",
+              "name": "name",
+              "value": "={{ $('Get Transactions Categories').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "69cb76d9-6eb6-45ca-a161-fc5572963e7c",
+              "name": "transaction_type_id",
+              "value": "={{ $('Get Transactions Categories').item.json.transaction_type_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        -32
+      ],
+      "id": "462a5cfc-5b44-4879-bce7-5349eebb86d2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -32
+      ],
+      "id": "19de8fa9-c138-4335-8a57-038dd99d23ba",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "concise-obliging-falcon.ngrok-free.app",
+            "user-agent": "axios/1.13.2",
+            "content-length": "75",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "2402:5680:8f28:dba8:363f:a4cc:4718:8545",
+            "x-forwarded-host": "concise-obliging-falcon.ngrok-free.app",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "get_categories",
+            "userId": "8ba58bf0-537e-4c6d-983a-46286d2abc61"
+          },
+          "webhookUrl": "https://concise-obliging-falcon.ngrok-free.app/webhook/get-categories",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Transactions Categories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Transactions Categories": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "efb7450d-70a5-43b6-bc0e-9c4d0c99d256",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a770f2e2d9919137aad6ab341adf11b9a1c37f583b353d394ecf99ec6ca60248"
+  },
+  "id": "m1i2UddtOsEUASyO",
+  "tags": []
+}

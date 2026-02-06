@@ -1,6 +1,8 @@
 node_modules/
 .env
+.env_local
+.env_online
 .DS_Store
-.vercel
 /dist
 
+.AppImage

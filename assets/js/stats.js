@@ -221,7 +221,7 @@ function renderPage(data) {
     });
 }
 
-// --- CRUD & Form (Reuse) ---
+// --- CRUD & Form ---
 window.deleteTransaction = async function(id) {
     if (!confirm('Delete this expense?')) return;
     try {
@@ -319,7 +319,7 @@ window.exportToPDF = function() {
     const doc = new jsPDF();
     
     // 1. Setup Fonts & Colors
-    const primaryColor = [46, 196, 182]; // Teal from our theme
+    const primaryColor = [46, 196, 182]; // Teal 
     
     // 2. Title Section
     const filterInput = document.getElementById('monthFilter');

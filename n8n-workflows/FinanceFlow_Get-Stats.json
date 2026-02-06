@@ -1,0 +1,271 @@
+{
+  "name": "FinanceFlow - Get Stats",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "get-stats",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        80
+      ],
+      "id": "e4dd8a0f-49ca-41d0-8423-e22204e57ebf",
+      "name": "Webhook",
+      "webhookId": "f56fb9fa-c584-4ddd-8d2b-031eea5c3364"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "85f4f999-dd15-4c73-956a-0aa5df502741",
+              "name": "data",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        80
+      ],
+      "id": "5b32e1c1-6fda-43ee-9f8d-022deb6a34e5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        368,
+        80
+      ],
+      "id": "ee2f0f09-d902-4993-80aa-9f4df69251a4",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  COALESCE(SUM(amount), 0) as balance,\n  \n  COALESCE(SUM(CASE WHEN date >= '{{ $json.body.startDate }}' AND amount > 0 THEN amount ELSE 0 END), 0) as income,\n  \n  ABS(COALESCE(SUM(CASE WHEN date >= '{{ $json.body.startDate }}' AND amount < 0 THEN amount ELSE 0 END), 0)) as expense,\n\n  COUNT(id) as transaction_count\n\nFROM transactions\nWHERE user_id = '{{ $json.body.userId }}'\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -112,
+        -16
+      ],
+      "id": "5c5c3fdf-9600-4acf-b4ba-e34df81a891e",
+      "name": "Get Total Balance, Income, and Expense",
+      "credentials": {
+        "postgres": {
+          "id": "6ir1djsGj4YppZna",
+          "name": "Postgres - Expense Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  COUNT(id) as transaction_count,\n  COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0) as income,\n  ABS(COALESCE(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END), 0)) as expense\nFROM transactions\nWHERE user_id = '{{ $('Webhook').item.json.body.userId }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -112,
+        176
+      ],
+      "id": "bb0e13fe-104a-4e51-a005-ac9c9c213dce",
+      "name": "Get Total Transactions",
+      "credentials": {
+        "postgres": {
+          "id": "6ir1djsGj4YppZna",
+          "name": "Postgres - Expense Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_dashboard_stats",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "02fc0e51-81ec-49ce-a389-3e7564319f17"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "DASHBOARD"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d891133a-3cf1-4869-b932-a6ddf33f26de",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_profile_stats",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PROFILE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -336,
+        80
+      ],
+      "id": "7aae9641-5cf2-4c9a-82e7-5936dffb0cff",
+      "name": "Switch"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "concise-obliging-falcon.ngrok-free.app",
+            "user-agent": "axios/1.13.2",
+            "content-length": "105",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "2402:5680:9b2c:5210:4771:cf95:e851:4a36",
+            "x-forwarded-host": "concise-obliging-falcon.ngrok-free.app",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "get_dashboard_stats",
+            "userId": "8ba58bf0-537e-4c6d-983a-46286d2abc61",
+            "startDate": "2026-02-01"
+          },
+          "webhookUrl": "https://concise-obliging-falcon.ngrok-free.app/webhook/get-stats",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Total Balance, Income, and Expense": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Total Transactions": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get Total Balance, Income, and Expense",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Total Transactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4a190280-eb57-437f-827c-42a659d61254",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a770f2e2d9919137aad6ab341adf11b9a1c37f583b353d394ecf99ec6ca60248"
+  },
+  "id": "YY8liLt15jHIKnXG",
+  "tags": []
+}

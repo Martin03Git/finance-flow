@@ -1,0 +1,164 @@
+{
+  "name": "FinanceFlow - Get Transactions",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    t.id, \n    t.amount, \n    t.date, \n    t.note, \n    t.image_proof_url,\n    \n    -- Join Category Info\n    c.name as category_name,\n    c.icon as category_icon,\n    c.color as category_color,\n    \n    -- Join Transaction Type (Income/Expense)\n    tt.slug as type\n\nFROM transactions t\nLEFT JOIN categories c ON t.category_id = c.id\nLEFT JOIN transaction_types tt ON c.transaction_type_id = tt.id\n\nWHERE t.user_id = '{{ $json.body.userId }}'\nAND t.date >= '{{ $json.body.startDate }}'\nAND t.date <= '{{ $json.body.endDate }}'\n\nORDER BY t.date DESC, t.created_at DESC;",
+        "options": {
+          "queryReplacement": ""
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        32
+      ],
+      "id": "84901b5e-8f52-4a9f-b603-2ad827c10fb3",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "6ir1djsGj4YppZna",
+          "name": "Postgres - Expense Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        432,
+        32
+      ],
+      "id": "bc4a8b07-2e08-4e3e-9a74-56f07f41d777",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        640,
+        32
+      ],
+      "id": "da38203c-65b6-4abe-88c7-3e16a9eb6167",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "content": "## Simplified Flow Using SQL Query",
+        "height": 272,
+        "width": 1056
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -48
+      ],
+      "id": "f210699d-fe34-4b8d-b190-b0e9a02ce92b",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "get-transactions",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        32
+      ],
+      "id": "61544ee3-22bf-4746-a96d-cba9b0a83c23",
+      "name": "Webhook",
+      "webhookId": "ef823806-b150-4d67-a519-24499bd3cf79"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "concise-obliging-falcon.ngrok-free.app",
+            "user-agent": "axios/1.13.2",
+            "content-length": "132",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "2402:5680:8f34:920c:9deb:cf1e:a88e:cbd9",
+            "x-forwarded-host": "concise-obliging-falcon.ngrok-free.app",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "get_recent_transactions",
+            "userId": "8ba58bf0-537e-4c6d-983a-46286d2abc61",
+            "startDate": "2026-01-01",
+            "endDate": "2026-01-31"
+          },
+          "webhookUrl": "https://concise-obliging-falcon.ngrok-free.app/webhook/get-transactions",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7e2d47c5-5de3-4d24-803b-d5acf102b19b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a770f2e2d9919137aad6ab341adf11b9a1c37f583b353d394ecf99ec6ca60248"
+  },
+  "id": "04WQBlkBiOKWfjzE",
+  "tags": []
+}

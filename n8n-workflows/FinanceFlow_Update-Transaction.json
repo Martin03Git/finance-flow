@@ -1,0 +1,206 @@
+{
+  "name": "FinanceFlow - Update Transaction",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "update-transaction",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        16
+      ],
+      "id": "3094f0d5-ef7a-4d45-bba9-423902a071e2",
+      "name": "Webhook",
+      "webhookId": "c861e15d-2b76-41c8-b9ba-59b22f0b49a5"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "transactions",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.body.userId }}"
+            },
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.body.transactionId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "amount",
+              "fieldValue": "={{ $('Webhook').item.json.body.payload.amount }}"
+            },
+            {
+              "fieldId": "date",
+              "fieldValue": "={{ $('Webhook').item.json.body.payload.date }}"
+            },
+            {
+              "fieldId": "category_id",
+              "fieldValue": "={{ $('Get Category ID').item.json.id }}"
+            },
+            {
+              "fieldId": "note",
+              "fieldValue": "={{ $('Webhook').item.json.body.payload.note }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        128,
+        16
+      ],
+      "id": "25d18023-af72-488e-91f0-c9f56ccbe512",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "FmzwtUyKnwLDqzgE",
+          "name": "Supabase - Expense Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "categories",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $json.body.userId }}"
+            },
+            {
+              "keyName": "name",
+              "keyValue": "={{ $json.body.payload.category_name }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        16
+      ],
+      "id": "1b27301a-a4e4-449d-a428-0df68cac3924",
+      "name": "Get Category ID",
+      "credentials": {
+        "supabaseApi": {
+          "id": "FmzwtUyKnwLDqzgE",
+          "name": "Supabase - Expense Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Transaction updated\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        16
+      ],
+      "id": "5ab3fa19-a9ef-41bd-be28-3f6be6eba4e4",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "concise-obliging-falcon.ngrok-free.app",
+            "user-agent": "axios/1.13.2",
+            "content-length": "247",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "2402:5680:9b29:404f:7003:e23a:7a80:bb5a",
+            "x-forwarded-host": "concise-obliging-falcon.ngrok-free.app",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "update_transaction",
+            "userId": "8ba58bf0-537e-4c6d-983a-46286d2abc61",
+            "transactionId": "b7158c82-2e32-474f-bbad-358f681b5759",
+            "payload": {
+              "amount": 120000,
+              "date": "2026-01-30",
+              "category_name": "Freelance",
+              "note": "project n8n",
+              "type": "income"
+            }
+          },
+          "webhookUrl": "https://concise-obliging-falcon.ngrok-free.app/webhook/update-transaction",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Category ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Category ID": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7e694c95-f61e-4cd8-ae67-fbc8f0b99b12",
+  "meta": {
+    "instanceId": "a770f2e2d9919137aad6ab341adf11b9a1c37f583b353d394ecf99ec6ca60248"
+  },
+  "id": "I6QxT6XyuPHRemHU",
+  "tags": []
+}

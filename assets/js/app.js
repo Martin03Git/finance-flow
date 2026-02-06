@@ -173,7 +173,7 @@ function renderTransactions(transactions) {
              // Fallback logic
              const catLower = categoryName.toLowerCase();
              if (catLower.includes('food')) { categoryIcon = 'shopping-cart'; iconClass = 'bg-orange-100 text-orange-600'; }
-             // ... other fallbacks omitted for brevity as DB colors are preferred
+            
         }
 
         const isExpense = type === 'expense' || amount < 0;
