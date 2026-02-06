@@ -5,4 +5,9 @@ node_modules/
 .DS_Store
 /dist
 
-.AppImage
+*.AppImage
+
+# AI & Project Documentation
+.ai-discussions/
+.opencode/
+AGENTS.md
